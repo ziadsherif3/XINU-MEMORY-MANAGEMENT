@@ -11,13 +11,14 @@
 #define FRAMEEND        0x00FFFFFF      /* Last address of the physical memory */
 
 #define NPFRAMES        3072            /* Number of page frames */
+#define NPAGES          4096            /* Number of pages in the physical memory */
 
 extern byte pageframes[];               /* Array to indicate whether the page frame is present or not */
 
 /* Helper functions */
 
-status paginginit();
-int32 getemptyframe();
+extern status paginginit();
+extern int32 getemptyframe();
 
 /* Inline helper functions */
 

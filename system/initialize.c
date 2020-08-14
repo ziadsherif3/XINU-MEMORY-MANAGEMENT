@@ -192,6 +192,10 @@ static	void	sysinit()
 	prptr->prstklen = NULLSTK;
 	prptr->prstkptr = 0;
 	currpid = NULLPROC;
+
+	/* Initialize and enable paging */
+
+	paginginit();
 	
 	/* Initialize semaphores */
 
