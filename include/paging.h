@@ -2,23 +2,27 @@
 
 /* Variables and constant definitions */
 
-#define PAGEDIR         0x00400000      /* Physical address of the page directory */
-#define PAGETAB1        0x00401000      /* Physical address of the first page table */
-#define PAGETAB2        0x00402000      /* Physical address of the second page table */
-#define PAGETAB3        0x00403000      /* Physical address of the third page table */
-#define PAGETAB4        0x00404000      /* Physical address of the fourth page table */
-#define FREEFRAME       0x00405000      /* Physical address of the first free frame */
-#define FRAMEEND        0x00FFFFFF      /* Last address of the physical memory */
+#define PAGEDIR             0x00400000      /* Physical address of the page directory */
+#define PAGETAB1            0x00401000      /* Physical address of the first page table */
+#define PAGETAB2            0x00402000      /* Physical address of the second page table */
+#define PAGETAB3            0x00403000      /* Physical address of the third page table */
+#define PAGETAB4            0x00404000      /* Physical address of the fourth page table */
+#define FREEFRAME           0x00405000      /* Physical address of the first free frame */
+#define FRAMEEND            0x00FFFFFF      /* Last address of the physical memory */
 
-#define NPFRAMES        3072            /* Number of page frames */
-#define NPAGES          4096            /* Number of pages in the physical memory */
+#define NPFRAMES            3072            /* Number of page frames */
+#define NPAGES              4096            /* Number of pages in the physical memory */
 
-extern byte pageframes[];               /* Array to indicate whether the page frame is present or not */
+#define PAGING_SERVER_IP    "192.168.1.42"  /* IP address of the remote paging server */
+#define PAGING_SERVER_PORT  49188           /* Port number of the remote paging server */
+
+extern byte pageframes[];                   /* Array to indicate whether the page frame is present or not */
 
 /* Helper functions */
 
 extern status paginginit();
 extern int32 getemptyframe();
+extern status connectiontest();
 
 /* Inline helper functions */
 
