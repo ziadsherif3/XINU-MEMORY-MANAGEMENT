@@ -19,9 +19,11 @@ typedef	uint32	bsd_t;                      /* Backing store descriptor type type
 #define PAGING_SERVER_PORT  49188           /* Port number of the remote paging server */
 
 #define GETBS               0               /* Packet type of get_bs */
-#define RELEASEBS           0               /* Packet type of get_bs */
-#define READBS              0               /* Packet type of get_bs */
-#define WRITEBS             0               /* Packet type of get_bs */
+#define RELEASEBS           1               /* Packet type of get_bs */
+#define READBS              2               /* Packet type of get_bs */
+#define WRITEBS             3               /* Packet type of get_bs */
+
+#define PAGESERVERERR       0               /* Paging server error */
 
 extern byte pageframes[];                   /* Array to indicate whether the page frame is present or not */
 
