@@ -1,4 +1,4 @@
-/* pagingclient.c - connectiontest */
+/* pagingclient.c - connectiontest, get_bs, release_bs, read_bs, write_bs */
 
 #include <xinu.h>
 
@@ -67,4 +67,40 @@ status	connectiontest()
     fprintf(stdout, "Received message: %s\n", inbuf);
 
     return OK;
+}
+
+/*----------------------------------------------------------------
+ *  get_bs  -  Request from the paging server a new backing store
+ *----------------------------------------------------------------
+ */
+int32 get_bs(bsd_t store, uint32 npages)
+{
+	return OK;
+}
+
+/*-------------------------------------------------------------------------------------------
+ *  release_bs  -  Request from the paging server to release the backing store with ID store
+ *-------------------------------------------------------------------------------------------
+ */
+int32 release_bs(bsd_t store)
+{
+	return OK;
+}
+
+/*-------------------------------------------------------------
+ *  read_bs  -  Copy the pagenumth page from the backing store
+ *-------------------------------------------------------------
+ */
+syscall read_bs(char *dst, bsd_t store, int32 pagenum)
+{
+	return OK;
+}
+
+/*----------------------------------------------------------------------
+ *  write_bs  -  Copy a page to the pagenumth page of the backing store
+ *----------------------------------------------------------------------
+ */
+syscall write_bs(char *src, bsd_t store, int32 pagenum)
+{
+	return OK;
 }

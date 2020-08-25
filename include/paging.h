@@ -1,6 +1,8 @@
 /* paging.h */
 
-/* Variables and constant definitions */
+/* Variables, constants definitions, and typdefs */
+
+typedef	uint32	bsd_t;                      /* Backing store descriptor type typedef */
 
 #define PAGEDIR             0x00400000      /* Physical address of the page directory */
 #define PAGETAB1            0x00401000      /* Physical address of the first page table */
@@ -16,6 +18,11 @@
 #define PAGING_SERVER_IP    "192.168.1.42"  /* IP address of the remote paging server */
 #define PAGING_SERVER_PORT  49188           /* Port number of the remote paging server */
 
+#define GETBS               0               /* Packet type of get_bs */
+#define RELEASEBS           0               /* Packet type of get_bs */
+#define READBS              0               /* Packet type of get_bs */
+#define WRITEBS             0               /* Packet type of get_bs */
+
 extern byte pageframes[];                   /* Array to indicate whether the page frame is present or not */
 
 /* Helper functions */
@@ -23,6 +30,10 @@ extern byte pageframes[];                   /* Array to indicate whether the pag
 extern status paginginit();
 extern int32 getemptyframe();
 extern status connectiontest();
+extern int32 get_bs(bsd_t, uint32);
+extern int32 release_bs(bsd_t);
+extern syscall read_bs(char *, bsd_t, int32);
+extern syscall write_bs(char *, bsd_t, int32);
 
 /* Inline helper functions */
 
