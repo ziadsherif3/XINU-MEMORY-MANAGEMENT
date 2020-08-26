@@ -5,6 +5,7 @@ import enum
 class PageServer:
     
     class Constants(enum.Enum):
+        PAGESERVERERR = 0
         OK = 1
     
     class PacketType(enum.Enum):
@@ -53,7 +54,15 @@ class PageServer:
         
     
     def release_bs_response(self, data):
-        pass
+        (bsd_t_ID,) = struct.unpack("<I", data)
+        
+        if bsd_t_ID not in self.backing_store:
+            outdata = struct.pack("<I", PageServer.Constants.PAGESERVERERR.value)
+        else:
+            del self.backing_store[bsd_t_ID]
+            outdata = outdata = struct.pack("<I", PageServer.Constants.OK.value)
+        
+        self.packet_buffer.append(outdata)
     
     def read_bs_response(self, data):
         pass
