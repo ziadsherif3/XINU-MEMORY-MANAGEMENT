@@ -221,6 +221,83 @@ int32 release_bs(bsd_t store)
  */
 syscall read_bs(char *dst, bsd_t store, int32 pagenum)
 {
+	int	i;			/* Index into buffer */
+	int	j;			/* Index into buffer */
+	int	retval;			/* Return value */
+	uint32	data[4];   /* Data to send */
+	uint32	inbuf[257];		/* Buffer for incoming reply */
+	int32	slot;			/* UDP slot to use */
+	uint32	remoteip;		/* Remote IP address to use */
+	uint16	locport	= 52743;	/* Local port to use */
+	int32	retries	= 3;		/* Number of retries */
+	int32	delay	= 2000;		/* Reception delay in ms */
+
+	/* Convert IP string into uint32 */
+
+    if (dot2ip(PAGING_SERVER_IP, &remoteip) == SYSERR) {
+		fprintf(stderr, "Invalid IP address argument\r\n");
+		return SYSERR;
+	}
+
+	/* Register local UDP port */
+
+	slot = udp_register(remoteip, PAGING_SERVER_PORT, locport);
+	if (slot == SYSERR) {
+		fprintf(stderr, "Could not reserve UDP port %d\n", locport);
+		return SYSERR;
+	}
+
+	/* Retry sending outgoing datagram and getting response */
+
+	data[0] = READBS;
+	data[1] = store;
+	data[2] = pagenum;
+
+	for (j = 0; j < 4; j++) {
+		data[3] = j + 1;
+
+		for (i = 0; i < retries; i++) {
+			retval = udp_send(slot, (char *) data, sizeof(data));
+			
+			if (retval == SYSERR) {
+				fprintf(stderr, "Error sending UDP\n");
+				udp_release(slot);
+				return SYSERR;
+			}
+
+			retval = udp_recv(slot, (char *) inbuf, sizeof(inbuf), delay);
+			if (retval == TIMEOUT) {
+				fprintf(stderr, "Timeout...\n");
+				continue;
+			} else if (retval == SYSERR) {
+				fprintf(stderr, "Error from udp_recv\n");
+				udp_release(slot);
+				return SYSERR;
+			}
+
+			/* Parse incoming packet */
+
+			if (inbuf[0] == PAGESERVERERR) {
+				fprintf(stderr, "Paging server error\n");
+				udp_release(slot);
+				return SYSERR;
+			}
+			else {
+				memcpy(dst + (j * 1024), (char *) (inbuf + 1), 1024);
+			}
+
+			break;
+		}
+
+		if (retval == TIMEOUT) {
+			fprintf(stderr, "Retry limit exceeded\n");
+			udp_release(slot);
+			return SYSERR;
+		}
+	}
+
+	udp_release(slot);
+
 	return OK;
 }
 

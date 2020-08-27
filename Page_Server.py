@@ -69,7 +69,16 @@ class PageServer:
         self.packet_buffer.append(outdata)
     
     def read_bs_response(self, data):
-        pass
+        bsd_t_ID, pagenum, division = struct.unpack("<III", data)
+        
+        if bsd_t_ID not in self.backing_store:
+            outdata = struct.pack("<I", PageServer.Constants.PAGESERVERERR.value)
+        elif pagenum not in self.backing_store[bsd_t_ID]:
+            outdata = struct.pack("<I", PageServer.Constants.PAGESERVERERR.value)
+        else:
+            outdata = struct.pack("<257I", PageServer.Constants.OK.value, *self.backing_store[bsd_t_ID][pagenum][division])
+        
+        self.packet_buffer.append(outdata)
     
     def write_bs_response(self, data):
         (bsd_t_ID, pagenum, division), data = struct.unpack("<III", data[:12]), data[12:]
