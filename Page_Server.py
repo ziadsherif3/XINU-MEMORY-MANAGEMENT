@@ -45,11 +45,15 @@ class PageServer:
     def get_bs_response(self, data):
         bsd_t_ID, npages = struct.unpack("<II", data)
         
-        if bsd_t_ID not in self.backing_store:
-            self.backing_store[bsd_t_ID] = {"size": npages}
+        if npages == 0:
+            outdata = struct.pack("<I", PageServer.Constants.PAGESERVERERR.value)
+        else:
+            if bsd_t_ID not in self.backing_store:
+                self.backing_store[bsd_t_ID] = {"size": npages}
         
-        size = self.backing_store[bsd_t_ID]["size"]
-        outdata = struct.pack("<II", PageServer.Constants.OK.value, size)
+            size = self.backing_store[bsd_t_ID]["size"]
+            outdata = struct.pack("<II", PageServer.Constants.OK.value, size)
+        
         self.packet_buffer.append(outdata)
         
     
@@ -68,8 +72,25 @@ class PageServer:
         pass
     
     def write_bs_response(self, data):
-        pass
-
+        (bsd_t_ID, pagenum, division), data = struct.unpack("<III", data[:12]), data[12:]
+        
+        if bsd_t_ID not in self.backing_store:
+            outdata = struct.pack("<I", PageServer.Constants.PAGESERVERERR.value)
+        else:
+            if pagenum not in self.backing_store[bsd_t_ID]:
+                self.backing_store[bsd_t_ID][pagenum] = {}
+            
+            division_data = struct.unpack("<256I", data)
+            self.backing_store[bsd_t_ID][pagenum][division] = division_data
+            current_size = len(self.backing_store[bsd_t_ID]) - 1
+            
+            if (division == 1) and (self.backing_store[bsd_t_ID]["size"] == current_size):
+                self.backing_store[bsd_t_ID]["size"] += 1
+            
+            outdata = outdata = struct.pack("<I", PageServer.Constants.OK.value)
+        
+        self.packet_buffer.append(outdata)
+        
 def setup_socket():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(("192.168.1.42", 49188))

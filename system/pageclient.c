@@ -41,6 +41,7 @@ status	connectiontest()
 		retval = udp_send(slot, msg, msglen);
 		if (retval == SYSERR) {
 			fprintf(stderr, "Error sending UDP\n");
+			udp_release(slot);
 			return SYSERR;
 		}
 
@@ -110,6 +111,7 @@ int32 get_bs(bsd_t store, uint32 npages)
 		retval = udp_send(slot, (char *) data, sizeof(data));
 		if (retval == SYSERR) {
 			fprintf(stderr, "Error sending UDP\n");
+			udp_release(slot);
 			return SYSERR;
 		}
 
@@ -134,11 +136,11 @@ int32 get_bs(bsd_t store, uint32 npages)
 	/* Parse incoming packet */
 
 	if (inbuf[0] == PAGESERVERERR) {
+		fprintf(stderr, "Paging server error\n");
 		return SYSERR;
 	}
 
 	return inbuf[1];
-
 }
 
 /*-------------------------------------------------------------------------------------------
@@ -181,6 +183,7 @@ int32 release_bs(bsd_t store)
 		retval = udp_send(slot, (char *) data, sizeof(data));
 		if (retval == SYSERR) {
 			fprintf(stderr, "Error sending UDP\n");
+			udp_release(slot);
 			return SYSERR;
 		}
 
@@ -205,6 +208,7 @@ int32 release_bs(bsd_t store)
 	/* Parse incoming packet */
 
 	if (inbuf[0] == PAGESERVERERR) {
+		fprintf(stderr, "Paging server error\n");
 		return SYSERR;
 	}
 
@@ -226,5 +230,80 @@ syscall read_bs(char *dst, bsd_t store, int32 pagenum)
  */
 syscall write_bs(char *src, bsd_t store, int32 pagenum)
 {
+	int	i;			/* Index into buffer */
+	int	j;			/* Index into buffer */
+	int	retval;			/* Return value */
+	uint32	data[256 + 4];   /* Data to send (256 entry of size 4 bytes (uint32), and 4 uint32 for control fields) = 1040 bytes */
+	uint32	inbuf[1];		/* Buffer for incoming reply */
+	int32	slot;			/* UDP slot to use */
+	uint32	remoteip;		/* Remote IP address to use */
+	uint16	locport	= 52743;	/* Local port to use */
+	int32	retries	= 3;		/* Number of retries */
+	int32	delay	= 2000;		/* Reception delay in ms */
+
+	/* Convert IP string into uint32 */
+
+    if (dot2ip(PAGING_SERVER_IP, &remoteip) == SYSERR) {
+		fprintf(stderr, "Invalid IP address argument\r\n");
+		return SYSERR;
+	}
+
+	/* Register local UDP port */
+
+	slot = udp_register(remoteip, PAGING_SERVER_PORT, locport);
+	if (slot == SYSERR) {
+		fprintf(stderr, "Could not reserve UDP port %d\n", locport);
+		return SYSERR;
+	}
+
+	/* Retry sending outgoing datagram and getting response */
+
+	data[0] = WRITEBS;
+	data[1] = store;
+	data[2] = pagenum;
+
+	for (j = 0; j < 4; j++) {
+		data[3] = j + 1;
+		memcpy((char *) (data + 4), src + (j * 1024), 1024); // Copy 1024 bytes into data starting from data + 4
+
+		for (i = 0; i < retries; i++) {
+			retval = udp_send(slot, (char *) data, sizeof(data));
+			
+			if (retval == SYSERR) {
+				fprintf(stderr, "Error sending UDP\n");
+				udp_release(slot);
+				return SYSERR;
+			}
+
+			retval = udp_recv(slot, (char *) inbuf, sizeof(inbuf), delay);
+			if (retval == TIMEOUT) {
+				fprintf(stderr, "Timeout...\n");
+				continue;
+			} else if (retval == SYSERR) {
+				fprintf(stderr, "Error from udp_recv\n");
+				udp_release(slot);
+				return SYSERR;
+			}
+
+			/* Parse incoming packet */
+
+			if (inbuf[0] == PAGESERVERERR) {
+				fprintf(stderr, "Paging server error\n");
+				udp_release(slot);
+				return SYSERR;
+			}
+
+			break;
+		}
+
+		if (retval == TIMEOUT) {
+			fprintf(stderr, "Retry limit exceeded\n");
+			udp_release(slot);
+			return SYSERR;
+		}
+	}
+
+	udp_release(slot);
+
 	return OK;
 }
