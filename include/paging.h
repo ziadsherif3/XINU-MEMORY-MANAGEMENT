@@ -50,3 +50,6 @@ struct invpagent {
     pid32 procid;       /* ID of the process owning the page frame */
     int32 vpagenum;     /* Virtual page number in the backing store */
 };
+
+extern byte pageframes[];                   /* Array to indicate whether the page frame is present or not */
+extern struct invpagent invpagetab[];
