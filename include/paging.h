@@ -40,5 +40,13 @@ extern syscall write_bs(char *, bsd_t, int32);
 /* Inline helper functions */
 
 #define indtoadd(I)         (I * 4096 + 0x00400000)     /* Convert the index of a page frame to its physical address */
+#define addtoind(A)         ((A - 0x00400000) / 4096)   /* Convert the physical address of a page frame to its index */
 #define isbadfid(I)         ((I < 0) || (I >= 3072))    /* Check whether the frame index is in the range 0 -> 3071 */
 #define isframeused(I)      (pageframes[I])             /* Check whether the frame is used */
+
+/* Definition of the inverted page table */
+
+struct invpagent {
+    pid32 procid;       /* ID of the process owning the page frame */
+    int32 vpagenum;     /* Virtual page number in the backing store */
+};

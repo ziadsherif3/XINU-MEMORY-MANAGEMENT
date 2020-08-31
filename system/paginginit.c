@@ -3,6 +3,7 @@
 #include <xinu.h>
 
 byte pageframes[NPFRAMES];
+struct invpagent invpagetab[NPFRAMES];
 
 /*-------------------------------------------------------------------------
  *  paginginit  -  Initialize variables and data structures used in paging
