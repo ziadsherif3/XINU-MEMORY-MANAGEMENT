@@ -44,7 +44,7 @@ extern syscall write_bs(char *, bsd_t, int32);
 #define isbadfid(I)         ((I < 0) || (I >= 3072))    /* Check whether the frame index is in the range 0 -> 3071 */
 #define isframeused(I)      (pageframes[I])             /* Check whether the frame is used */
 
-/* Definition of the inverted page table */
+/* Definition of the inverted page table entry */
 
 struct invpagent {
     pid32 procid;       /* ID of the process owning the page frame */
@@ -52,4 +52,4 @@ struct invpagent {
 };
 
 extern byte pageframes[];                   /* Array to indicate whether the page frame is present or not */
-extern struct invpagent invpagetab[];
+extern struct invpagent invpagetab[];       /* Inverted page table */
